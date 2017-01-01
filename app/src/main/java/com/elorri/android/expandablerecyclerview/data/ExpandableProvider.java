@@ -10,6 +10,7 @@ import android.content.pm.ProviderInfo;
 import android.content.res.XmlResourceParser;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.database.MergeCursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
@@ -26,6 +27,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,6 +60,7 @@ public class ExpandableProvider extends ContentProvider {
     private PathStrategy mStrategy;
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
+    private static final int ROOT_URI = 300; //Will match content://com.elorri.android.expandablerecyclerview/appDir/
     private static final int DIRECTORY_URI = 400; //Will match content://com.elorri.android.expandablerecyclerview/appDir/myDirectory
     private Context mContext;
 
@@ -67,6 +70,7 @@ public class ExpandableProvider extends ContentProvider {
         // URI.  It's common to use NO_MATCH as the code for this case.
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         matcher.addURI(ExpandableContract.CONTENT_AUTHORITY, ExpandableContract.PATH_APP_DIR + "/*", DIRECTORY_URI);
+        matcher.addURI(ExpandableContract.CONTENT_AUTHORITY, ExpandableContract.PATH_APP_DIR, ROOT_URI);
         return matcher;
     }
 
@@ -76,7 +80,7 @@ public class ExpandableProvider extends ContentProvider {
      */
     @Override
     public boolean onCreate() {
-        mContext=getContext();
+        mContext = getContext();
         return true;
     }
 
@@ -157,9 +161,32 @@ public class ExpandableProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
                         String sortOrder) {
-        // ContentProvider has already checked granted permissions
-        final File file = mStrategy.getFileForUri(uri);
+        Log.e("App", Thread.currentThread().getStackTrace()[2] + "Thread : " + FileUtils.thread() + " Uri " + uri);
 
+        switch (sUriMatcher.match(uri)) {
+            case ROOT_URI: {
+                Log.e("App", Thread.currentThread().getStackTrace()[2] + "ROOT_URI");
+                final File rootDir = FileUtils.getAppDir(mContext);
+                ArrayList<Cursor> cursors = new ArrayList();
+                for (File file : rootDir.listFiles()) {
+                    cursors.add(getCursorForFile(projection, file));
+                }
+                if (!cursors.isEmpty()) {
+                    return new MergeCursor(convertToArrayCursors(cursors));
+                }
+                break;
+            }
+            case DIRECTORY_URI: {
+                Log.e("App", Thread.currentThread().getStackTrace()[2] + "DIRECTORY_URI");
+                // ContentProvider has already checked granted permissions
+                final File file = mStrategy.getFileForUri(uri);
+                return getCursorForFile(projection, file);
+            }
+        }
+        return null;
+    }
+
+    private Cursor getCursorForFile(String[] projection, File file) {
         if (projection == null) {
             projection = COLUMNS;
         }
@@ -168,11 +195,11 @@ public class ExpandableProvider extends ContentProvider {
         Object[] values = new Object[projection.length];
         int i = 0;
         for (String col : projection) {
-            if (OpenableColumns.DISPLAY_NAME.equals(col)) {
-                cols[i] = OpenableColumns.DISPLAY_NAME;
+            if (ExpandableContract.DirectoryEntry.DISPLAY_NAME.equals(col)) {
+                cols[i] = ExpandableContract.DirectoryEntry.DISPLAY_NAME;
                 values[i++] = file.getName();
-            } else if (OpenableColumns.SIZE.equals(col)) {
-                cols[i] = OpenableColumns.SIZE;
+            } else if (ExpandableContract.DirectoryEntry.SIZE.equals(col)) {
+                cols[i] = ExpandableContract.DirectoryEntry.SIZE;
                 values[i++] = file.length();
             }
         }
@@ -183,6 +210,7 @@ public class ExpandableProvider extends ContentProvider {
         final MatrixCursor cursor = new MatrixCursor(cols, 1);
         cursor.addRow(values);
         return cursor;
+
     }
 
     /**
@@ -217,19 +245,20 @@ public class ExpandableProvider extends ContentProvider {
      */
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        Log.e("App", Thread.currentThread().getStackTrace()[2] + "Uri " + uri);
+        Log.e("App", Thread.currentThread().getStackTrace()[2] + "Thread : " + FileUtils.thread() + " Uri " + uri);
 
         switch (sUriMatcher.match(uri)) {
             case DIRECTORY_URI: {
                 Log.e("App", Thread.currentThread().getStackTrace()[2] + "DIRECTORY_URI");
-                String directoryName=ExpandableContract.getDirectoryFromUri(uri);
+                String directoryName = ExpandableContract.DirectoryEntry.getDirectoryFromUri(uri);
                 File directory = FileUtils.getAppDir(mContext, directoryName);
-                Log.e("App", Thread.currentThread().getStackTrace()[2] + "directory created : "+directory);
+                Log.e("App", Thread.currentThread().getStackTrace()[2] + "directory created : " + directory);
                 return uri;
             }
         }
         return null;
     }
+
     /**
      * By default, this method throws an {@link java.lang.UnsupportedOperationException}. You must
      * subclass FileProvider if you want to provide different functionality.
@@ -528,6 +557,16 @@ public class ExpandableProvider extends ContentProvider {
         final Object[] result = new Object[newLength];
         System.arraycopy(original, 0, result, 0, newLength);
         return result;
+    }
+
+    public static Cursor[] convertToArrayCursors(ArrayList<Cursor> cursorsList) {
+        Cursor[] cursors = new Cursor[cursorsList.size()];
+        int i = 0;
+        for (Cursor cursor : cursorsList) {
+            cursors[i] = cursor;
+            i++;
+        }
+        return cursors;
     }
 }
 

@@ -1,5 +1,7 @@
-package com.elorri.android.expandablerecyclerview;
+package com.elorri.android.expandablerecyclerview.ui;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,13 +9,16 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.elorri.android.expandablerecyclerview.R;
+import com.elorri.android.expandablerecyclerview.data.ExpandableContract;
 
 /**
  * Created by Elorri on 01/01/2017.
  */
 public class MainAdapter extends RecyclerView.Adapter<MainAdapter.TextViewHolder> {
+
+    private final Context mContext;
+    private Cursor mCursor;
 
     public class TextViewHolder extends RecyclerView.ViewHolder {
         public TextView textView;
@@ -23,13 +28,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.TextViewHolder
         }
     }
 
-    private List<String> labels;
-
-    public MainAdapter(int count) {
-        labels = new ArrayList<String>(count);
-        for (int i = 0; i < count; ++i) {
-            labels.add(String.valueOf(i));
-        }
+    public MainAdapter(Context context, Cursor cursor) {
+        mContext=context;
+        mCursor = cursor;
     }
 
     @Override
@@ -40,7 +41,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.TextViewHolder
 
     @Override
     public void onBindViewHolder(final TextViewHolder holder, final int position) {
-        final String label = labels.get(position);
+        mCursor.moveToPosition(position);
+        int directoryIdx = mCursor.getColumnIndex(ExpandableContract.DirectoryEntry.DISPLAY_NAME);
+        final String label = mCursor.getString(directoryIdx);
         holder.textView.setText(label);
         holder.textView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,7 +56,13 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.TextViewHolder
 
     @Override
     public int getItemCount() {
-        return labels.size();
+        if (null == mCursor) return 0;
+        return mCursor.getCount();
+    }
+
+    public void swapCursor(Cursor data) {
+        mCursor = data;
+        notifyDataSetChanged();
     }
 
 }

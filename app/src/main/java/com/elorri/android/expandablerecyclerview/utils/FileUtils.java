@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
@@ -105,10 +106,18 @@ public class FileUtils {
     }
 
     //Used for data we want to keep forever but want to hide from the user.
+    //Exple to /data/data/com.myscript.nebo.debug/file/My folder/
+    //see: https://developer.android.com/training/basics/data-storage/files.html
+    public static File getAppDir(Context context) {
+        return  createDir(context.getFilesDir(),  "_app"); //We do this beacause android studio add instant run
+        // stuff in getFleDir
+    }
+
+    //Used for data we want to keep forever but want to hide from the user.
     //Exple to /data/data/com.myscript.nebo.debug/file/My folder/_nebo/
     //see: https://developer.android.com/training/basics/data-storage/files.html
     public static File getAppDir(Context context, String folder) {
-        return createDir(context.getFilesDir(), folder);
+        return createDir(getAppDir(context), folder);
     }
 
     //Used for data we want visible to the user and other apps. And data we want in a general directory.
@@ -448,5 +457,11 @@ public class FileUtils {
             }
         }
         return uri.toString();
+    }
+
+    public static String thread() {
+        if (Looper.getMainLooper().getThread() == Thread.currentThread())
+            return "ThreadUI";
+        else return "Background";
     }
 }
