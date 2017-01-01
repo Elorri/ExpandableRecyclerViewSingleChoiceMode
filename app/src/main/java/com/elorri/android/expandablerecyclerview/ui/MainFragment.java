@@ -1,6 +1,9 @@
 package com.elorri.android.expandablerecyclerview.ui;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,8 +12,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +23,7 @@ import android.widget.EditText;
 
 import com.elorri.android.expandablerecyclerview.R;
 import com.elorri.android.expandablerecyclerview.data.ExpandableContract;
+import com.elorri.android.expandablerecyclerview.service.AppService;
 
 public class MainFragment extends Fragment implements View.OnClickListener, LoaderManager
         .LoaderCallbacks<Cursor> {
@@ -27,6 +33,7 @@ public class MainFragment extends Fragment implements View.OnClickListener, Load
     private Context mContext;
     private EditText mNameView;
     private int RECYCLERVIEW_LOADER_ID = 1;
+    private BroadcastReceiver mAppServiceReceiver;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -58,13 +65,28 @@ public class MainFragment extends Fragment implements View.OnClickListener, Load
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        mAppServiceReceiver = new AppServiceReceiver();
+        IntentFilter filter = new IntentFilter(AppService.APP_SERVICE_MESSAGE_EVENT);
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(mAppServiceReceiver,filter);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mAppServiceReceiver);
+    }
+
+    @Override
     public void onClick(View view) {
         String name = String.valueOf(mNameView.getText());
         switch (view.getId()) {
             case R.id.add_directory: {
-                mContext.getContentResolver().insert(ExpandableContract.DirectoryEntry
-                        .buildDirectoryUri(name), null);
-                getLoaderManager().restartLoader(RECYCLERVIEW_LOADER_ID, null, this);
+                Intent intent = new Intent(getActivity(), AppService.class);
+                intent.putExtra(ExpandableContract.DirectoryEntry.DISPLAY_NAME, name);
+                intent.setAction(AppService.ADD_DIRECTORY_REQUEST);
+                getActivity().startService(intent);
                 return;
             }
             case R.id.add_file: {
@@ -92,5 +114,21 @@ public class MainFragment extends Fragment implements View.OnClickListener, Load
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mAdapter.swapCursor(null);
+    }
+
+    private class AppServiceReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2]+"");
+            String message=intent.getStringExtra(AppService.ADD_DIRECTORY_REQUEST);
+            switch (message){
+                case AppService.ADD_DIRECTORY_DONE : {
+                    Log.e("Nebo", Thread.currentThread().getStackTrace()[2]+"");
+                    getLoaderManager().restartLoader(RECYCLERVIEW_LOADER_ID, null, MainFragment
+                            .this);
+                    break;
+                }
+            }
+        }
     }
 }

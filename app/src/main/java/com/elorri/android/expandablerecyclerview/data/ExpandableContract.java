@@ -3,12 +3,14 @@ package com.elorri.android.expandablerecyclerview.data;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 
+import com.elorri.android.expandablerecyclerview.AppApplication;
+
 /**
  * Created by Elorri on 01/01/2017.
  */
 public class ExpandableContract {
 
-    public static final String CONTENT_AUTHORITY = "com.elorri.android.expandablerecyclerview";
+    public static final String CONTENT_AUTHORITY = AppApplication.AUTHORITY;
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
     static String PATH_APP_DIR = "appDir";
 
