@@ -26,7 +26,7 @@ import com.elorri.android.expandablerecyclerview.data.ExpandableContract;
 import com.elorri.android.expandablerecyclerview.service.AppService;
 
 public class MainFragment extends Fragment implements View.OnClickListener, LoaderManager
-        .LoaderCallbacks<Cursor> {
+        .LoaderCallbacks<Cursor>,MainAdapter.Callback {
     private MainAdapter mAdapter;
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
@@ -49,7 +49,7 @@ public class MainFragment extends Fragment implements View.OnClickListener, Load
         mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerview);
         mLayoutManager = new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new MainAdapter(mContext, null);
+        mAdapter = new MainAdapter(mContext, null, this);
         mRecyclerView.setAdapter(mAdapter);
 
         mNameView = (EditText) view.findViewById(R.id.name);
@@ -116,13 +116,22 @@ public class MainFragment extends Fragment implements View.OnClickListener, Load
         mAdapter.swapCursor(null);
     }
 
+    @Override
+    public void deleteItem(String name) {
+        Intent intent = new Intent(getActivity(), AppService.class);
+        intent.putExtra(ExpandableContract.DirectoryEntry.DISPLAY_NAME, name);
+        intent.setAction(AppService.DELETE_DIRECTORY_REQUEST);
+        getActivity().startService(intent);
+    }
+
     private class AppServiceReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.e("Nebo", Thread.currentThread().getStackTrace()[2]+"");
-            String message=intent.getStringExtra(AppService.ADD_DIRECTORY_REQUEST);
+            String message=intent.getStringExtra(AppService.APP_SERVICE_MESSAGE_EVENT);
             switch (message){
-                case AppService.ADD_DIRECTORY_DONE : {
+                case AppService.ADD_DIRECTORY_DONE :
+                case AppService.DELETE_DIRECTORY_DONE : {
                     Log.e("Nebo", Thread.currentThread().getStackTrace()[2]+"");
                     getLoaderManager().restartLoader(RECYCLERVIEW_LOADER_ID, null, MainFragment
                             .this);

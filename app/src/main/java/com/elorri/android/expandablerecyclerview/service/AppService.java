@@ -17,6 +17,10 @@ public class AppService extends IntentService {
             = AppApplication.AUTHORITY + ".action.ADD_DIRECTORY_REQUEST";
     public static final String ADD_DIRECTORY_DONE
             = AppApplication.AUTHORITY + ".action.ADD_DIRECTORY_DONE";
+    public static final String DELETE_DIRECTORY_REQUEST
+            = AppApplication.AUTHORITY + ".action.DELETE_DIRECTORY_REQUEST";
+    public static final String DELETE_DIRECTORY_DONE
+            = AppApplication.AUTHORITY + ".action.DELETE_DIRECTORY_DONE";
     private Context mContext;
 
     public AppService() {
@@ -29,16 +33,32 @@ public class AppService extends IntentService {
         mContext = getApplicationContext();
         Log.e("App", Thread.currentThread().getStackTrace()[2] + "");
         if (intent != null) {
+            String name;
+            Intent intentEvent;
             switch (intent.getAction()) {
                 case ADD_DIRECTORY_REQUEST:
                     Log.e("App", Thread.currentThread().getStackTrace()[2] + "");
                     //Add directory in background
-                    final String name = intent.getStringExtra(ExpandableContract.DirectoryEntry.DISPLAY_NAME);
+                    name = intent.getStringExtra(ExpandableContract.DirectoryEntry.DISPLAY_NAME);
                     mContext.getContentResolver().insert(ExpandableContract.DirectoryEntry.buildDirectoryUri(name), null);
                     //Tell anyone interested directory has been added
-                    Intent intentEvent = new Intent(APP_SERVICE_MESSAGE_EVENT);
-                    intentEvent.putExtra(ADD_DIRECTORY_REQUEST, ADD_DIRECTORY_DONE);
+                    intentEvent = new Intent(APP_SERVICE_MESSAGE_EVENT);
+                    intentEvent.putExtra(APP_SERVICE_MESSAGE_EVENT, ADD_DIRECTORY_DONE);
                     LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intentEvent);
+                    return;
+                case DELETE_DIRECTORY_REQUEST:
+                    Log.e("App", Thread.currentThread().getStackTrace()[2] + "");
+                    //Add directory in background
+                    name = intent.getStringExtra(ExpandableContract.DirectoryEntry.DISPLAY_NAME);
+                    int isDeleted = mContext.getContentResolver().delete(ExpandableContract
+                            .DirectoryEntry.buildDirectoryUri(name), null, null);
+                    //Tell anyone interested directory has been deleted
+                    Log.e("App", Thread.currentThread().getStackTrace()[2] + "isDeleted "+isDeleted);
+                    if (isDeleted == 1) {
+                        intentEvent = new Intent(APP_SERVICE_MESSAGE_EVENT);
+                        intentEvent.putExtra(APP_SERVICE_MESSAGE_EVENT, DELETE_DIRECTORY_DONE);
+                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intentEvent);
+                    }
                     return;
                 default:
                     return;

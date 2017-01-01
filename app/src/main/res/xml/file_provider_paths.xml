@@ -11,7 +11,7 @@
     <!-- We give access to Context.getFileDir() directory
     Used for data we want to keep forever but want to hide from the user
     Exple to /data/data/com.elorri.android.expandablerecyclerview/file/-->
-    <files-path name="appDir" path="/"/>
+    <files-path name="appDir" path="/_app/"/>
 
     <!-- We give access to getExternalFilesDir() directory
     Used for data we want visible to the user and other apps. And data we want located in the app directory.

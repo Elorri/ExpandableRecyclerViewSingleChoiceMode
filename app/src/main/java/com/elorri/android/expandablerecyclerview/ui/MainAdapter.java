@@ -17,20 +17,28 @@ import com.elorri.android.expandablerecyclerview.data.ExpandableContract;
  */
 public class MainAdapter extends RecyclerView.Adapter<MainAdapter.TextViewHolder> {
 
+    private final Callback mCallback;
     private final Context mContext;
     private Cursor mCursor;
 
+    public interface Callback{
+        void deleteItem(String name);
+    }
+
     public class TextViewHolder extends RecyclerView.ViewHolder {
         public TextView textView;
+        private final View delete;
         public TextViewHolder(View itemView) {
             super(itemView);
             textView = (TextView) itemView.findViewById(R.id.text);
+            delete =  itemView.findViewById(R.id.delete);
         }
     }
 
-    public MainAdapter(Context context, Cursor cursor) {
+    public MainAdapter(Context context, Cursor cursor, Callback callback) {
         mContext=context;
         mCursor = cursor;
+        mCallback=callback;
     }
 
     @Override
@@ -45,11 +53,13 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.TextViewHolder
         int directoryIdx = mCursor.getColumnIndex(ExpandableContract.DirectoryEntry.DISPLAY_NAME);
         final String label = mCursor.getString(directoryIdx);
         holder.textView.setText(label);
-        holder.textView.setOnClickListener(new View.OnClickListener() {
+        holder.delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mCallback.deleteItem(label);
                 Toast.makeText(
                         holder.textView.getContext(), label, Toast.LENGTH_SHORT).show();
+
             }
         });
     }

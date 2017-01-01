@@ -281,9 +281,17 @@ public class ExpandableProvider extends ContentProvider {
      */
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        // ContentProvider has already checked granted permissions
-        final File file = mStrategy.getFileForUri(uri);
-        return file.delete() ? 1 : 0;
+        Log.e("App", Thread.currentThread().getStackTrace()[2] + "Thread : " + FileUtils.thread() + " Uri " + uri);
+        switch (sUriMatcher.match(uri)) {
+            case DIRECTORY_URI: {
+                Log.e("App", Thread.currentThread().getStackTrace()[2] + "DIRECTORY_URI");
+                // ContentProvider has already checked granted permissions
+                final File file = mStrategy.getFileForUri(uri);
+                Log.e("App", Thread.currentThread().getStackTrace()[2] + "file "+file);
+                return file.delete() ? 1 : 0;
+            }
+        }
+        return 0;
     }
 
     /**
