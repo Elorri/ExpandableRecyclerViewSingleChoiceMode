@@ -20,8 +20,10 @@ public class ExpandableContract {
                 .build();
     }
 
-    public static class DirectoryEntry implements OpenableColumns {
+    public static class FileEntry implements OpenableColumns {
         private static String DEFAULT_DIRECTORY_NAME = "Dir_Default";
+        public static String DIRECTORY_NAME ="directory_name";
+        public static String FILE_NAME="file_name";
 
         public static Uri buildDirectoryUri(String directoryName) {
             return BASE_CONTENT_URI.buildUpon()
@@ -30,13 +32,7 @@ public class ExpandableContract {
                     .build();
         }
 
-        public static String getDirectoryFromUri(Uri uri) {
-            return uri.getPathSegments().get(1);
-        }
 
-    }
-
-    public static class FileEntry implements OpenableColumns {
         public static Uri buildFileUri(String directoryName, String fileName) {
             return BASE_CONTENT_URI.buildUpon()
                     .appendPath(PATH_APP_DIR)
@@ -48,9 +44,13 @@ public class ExpandableContract {
         public static Uri buildFileUri(String fileName) {
             return BASE_CONTENT_URI.buildUpon()
                     .appendPath(PATH_APP_DIR)
-                    .appendPath(DirectoryEntry.DEFAULT_DIRECTORY_NAME)
+                    .appendPath(FileEntry.DEFAULT_DIRECTORY_NAME)
                     .appendPath(fileName)
                     .build();
+        }
+
+        public static String getDirectoryFromUri(Uri uri) {
+            return uri.getPathSegments().get(1);
         }
 
 

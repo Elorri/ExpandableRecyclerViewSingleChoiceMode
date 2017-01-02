@@ -26,7 +26,7 @@ import com.elorri.android.expandablerecyclerview.data.ExpandableContract;
 import com.elorri.android.expandablerecyclerview.service.AppService;
 
 public class MainFragment extends Fragment implements View.OnClickListener, LoaderManager
-        .LoaderCallbacks<Cursor>,MainAdapter.Callback {
+        .LoaderCallbacks<Cursor>, MainAdapter.Callback {
     private MainAdapter mAdapter;
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
@@ -54,7 +54,6 @@ public class MainFragment extends Fragment implements View.OnClickListener, Load
 
         mNameView = (EditText) view.findViewById(R.id.name);
         view.findViewById(R.id.add_directory).setOnClickListener(this);
-        view.findViewById(R.id.add_file).setOnClickListener(this);
         return view;
     }
 
@@ -69,7 +68,7 @@ public class MainFragment extends Fragment implements View.OnClickListener, Load
         super.onStart();
         mAppServiceReceiver = new AppServiceReceiver();
         IntentFilter filter = new IntentFilter(AppService.APP_SERVICE_MESSAGE_EVENT);
-        LocalBroadcastManager.getInstance(mContext).registerReceiver(mAppServiceReceiver,filter);
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(mAppServiceReceiver, filter);
     }
 
     @Override
@@ -84,8 +83,10 @@ public class MainFragment extends Fragment implements View.OnClickListener, Load
         switch (view.getId()) {
             case R.id.add_directory: {
                 Intent intent = new Intent(getActivity(), AppService.class);
-                intent.putExtra(ExpandableContract.DirectoryEntry.DISPLAY_NAME, name);
-                intent.setAction(AppService.ADD_DIRECTORY_REQUEST);
+                Bundle bundle=new Bundle();
+                bundle.putString(ExpandableContract.FileEntry.DIRECTORY_NAME, name);
+                intent.putExtras(bundle);
+                intent.setAction(AppService.ADD_FILE_REQUEST);
                 getActivity().startService(intent);
                 return;
             }
@@ -117,24 +118,37 @@ public class MainFragment extends Fragment implements View.OnClickListener, Load
     }
 
     @Override
+    public void addFile(String directory) {
+        Intent intent = new Intent(mContext, AppService.class);
+        Bundle bundle=new Bundle();
+        bundle.putString(ExpandableContract.FileEntry.DIRECTORY_NAME, directory);
+        bundle.putString(ExpandableContract.FileEntry.FILE_NAME, String.valueOf(mNameView.getText()));
+        intent.putExtras(bundle);
+        Log.e("App", Thread.currentThread().getStackTrace()[2]+"directory "+directory+" file"+mNameView.getText());
+        intent.setAction(AppService.ADD_FILE_REQUEST);
+        mContext.startService(intent);
+    }
+
+    @Override
     public void deleteItem(String name) {
         Intent intent = new Intent(getActivity(), AppService.class);
-        intent.putExtra(ExpandableContract.DirectoryEntry.DISPLAY_NAME, name);
-        intent.setAction(AppService.DELETE_DIRECTORY_REQUEST);
-        getActivity().startService(intent);
+        intent.putExtra(ExpandableContract.FileEntry.DIRECTORY_NAME, name);
+        intent.setAction(AppService.DELETE_FILE_REQUEST);
+        mContext.startService(intent);
     }
+
+
 
     private class AppServiceReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.e("Nebo", Thread.currentThread().getStackTrace()[2]+"");
-            String message=intent.getStringExtra(AppService.APP_SERVICE_MESSAGE_EVENT);
-            switch (message){
-                case AppService.ADD_DIRECTORY_DONE :
-                case AppService.DELETE_DIRECTORY_DONE : {
-                    Log.e("Nebo", Thread.currentThread().getStackTrace()[2]+"");
-                    getLoaderManager().restartLoader(RECYCLERVIEW_LOADER_ID, null, MainFragment
-                            .this);
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
+            String message = intent.getStringExtra(AppService.APP_SERVICE_MESSAGE_EVENT);
+            switch (message) {
+                case AppService.ADD_FILE_DONE:
+                case AppService.DELETE_FILE_DONE: {
+                    Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
+                    getLoaderManager().restartLoader(RECYCLERVIEW_LOADER_ID, null, MainFragment.this);
                     break;
                 }
             }

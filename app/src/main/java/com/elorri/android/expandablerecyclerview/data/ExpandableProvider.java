@@ -62,6 +62,7 @@ public class ExpandableProvider extends ContentProvider {
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private static final int ROOT_URI = 300; //Will match content://com.elorri.android.expandablerecyclerview/appDir/
     private static final int DIRECTORY_URI = 400; //Will match content://com.elorri.android.expandablerecyclerview/appDir/myDirectory
+    private static final int FILE_URI = 500; //Will match content://com.elorri.android.expandablerecyclerview/appDir/myDirectory/myFile
     private Context mContext;
 
     static UriMatcher buildUriMatcher() {
@@ -69,6 +70,7 @@ public class ExpandableProvider extends ContentProvider {
         // found.  The code passed into the constructor represents the code to return for the root
         // URI.  It's common to use NO_MATCH as the code for this case.
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
+        matcher.addURI(ExpandableContract.CONTENT_AUTHORITY, ExpandableContract.PATH_APP_DIR + "/*/*", FILE_URI);
         matcher.addURI(ExpandableContract.CONTENT_AUTHORITY, ExpandableContract.PATH_APP_DIR + "/*", DIRECTORY_URI);
         matcher.addURI(ExpandableContract.CONTENT_AUTHORITY, ExpandableContract.PATH_APP_DIR, ROOT_URI);
         return matcher;
@@ -168,14 +170,13 @@ public class ExpandableProvider extends ContentProvider {
                 Log.e("App", Thread.currentThread().getStackTrace()[2] + "ROOT_URI");
                 final File rootDir = FileUtils.getAppDir(mContext);
                 ArrayList<Cursor> cursors = new ArrayList();
-                for (File file : rootDir.listFiles()) {
-                    cursors.add(getCursorForFile(projection, file));
-                }
+                cursors = getCursorForDirectory(cursors, projection, rootDir);
                 if (!cursors.isEmpty()) {
                     return new MergeCursor(convertToArrayCursors(cursors));
                 }
                 break;
             }
+            case FILE_URI:
             case DIRECTORY_URI: {
                 Log.e("App", Thread.currentThread().getStackTrace()[2] + "DIRECTORY_URI");
                 // ContentProvider has already checked granted permissions
@@ -184,6 +185,23 @@ public class ExpandableProvider extends ContentProvider {
             }
         }
         return null;
+    }
+
+    private ArrayList<Cursor> getCursorForDirectory(ArrayList<Cursor> cursors, String[] projection, File
+            rootDir) {
+        for (File file : rootDir.listFiles()) {
+            Log.e("App", Thread.currentThread().getStackTrace()[2]+"isDirectory "+file.isDirectory());
+            Log.e("App", Thread.currentThread().getStackTrace()[2]+"isFile "+file.isFile());
+            if (file.isDirectory()) {
+                Log.e("App", Thread.currentThread().getStackTrace()[2]+"directory "+file);
+                cursors.add(getCursorForFile(projection, file));
+                getCursorForDirectory(cursors, projection, file);
+            } else {
+                Log.e("App", Thread.currentThread().getStackTrace()[2]+"file "+file);
+                cursors.add(getCursorForFile(projection, file));
+            }
+        }
+        return cursors;
     }
 
     private Cursor getCursorForFile(String[] projection, File file) {
@@ -195,11 +213,11 @@ public class ExpandableProvider extends ContentProvider {
         Object[] values = new Object[projection.length];
         int i = 0;
         for (String col : projection) {
-            if (ExpandableContract.DirectoryEntry.DISPLAY_NAME.equals(col)) {
-                cols[i] = ExpandableContract.DirectoryEntry.DISPLAY_NAME;
+            if (ExpandableContract.FileEntry.DISPLAY_NAME.equals(col)) {
+                cols[i] = ExpandableContract.FileEntry.DISPLAY_NAME;
                 values[i++] = file.getName();
-            } else if (ExpandableContract.DirectoryEntry.SIZE.equals(col)) {
-                cols[i] = ExpandableContract.DirectoryEntry.SIZE;
+            } else if (ExpandableContract.FileEntry.SIZE.equals(col)) {
+                cols[i] = ExpandableContract.FileEntry.SIZE;
                 values[i++] = file.length();
             }
         }
@@ -250,9 +268,18 @@ public class ExpandableProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case DIRECTORY_URI: {
                 Log.e("App", Thread.currentThread().getStackTrace()[2] + "DIRECTORY_URI");
-                String directoryName = ExpandableContract.DirectoryEntry.getDirectoryFromUri(uri);
+                String directoryName = ExpandableContract.FileEntry.getDirectoryFromUri(uri);
                 File directory = FileUtils.getAppDir(mContext, directoryName);
                 Log.e("App", Thread.currentThread().getStackTrace()[2] + "directory created : " + directory);
+                return uri;
+            }
+            case FILE_URI: {
+                Log.e("App", Thread.currentThread().getStackTrace()[2] + "FILE_URI");
+                String directoryName = ExpandableContract.FileEntry.getDirectoryFromUri(uri);
+                File directory = mStrategy.getFileForUri(ExpandableContract.FileEntry.buildDirectoryUri(directoryName));
+                File file = mStrategy.getFileForUri(uri);
+                FileUtils.createFile(directory, file);
+                Log.e("App", Thread.currentThread().getStackTrace()[2] + "file created : " + file);
                 return uri;
             }
         }
@@ -287,7 +314,7 @@ public class ExpandableProvider extends ContentProvider {
                 Log.e("App", Thread.currentThread().getStackTrace()[2] + "DIRECTORY_URI");
                 // ContentProvider has already checked granted permissions
                 final File file = mStrategy.getFileForUri(uri);
-                Log.e("App", Thread.currentThread().getStackTrace()[2] + "file "+file);
+                Log.e("App", Thread.currentThread().getStackTrace()[2] + "file " + file);
                 return file.delete() ? 1 : 0;
             }
         }

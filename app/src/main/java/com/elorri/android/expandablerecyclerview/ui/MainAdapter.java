@@ -22,15 +22,21 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.TextViewHolder
     private Cursor mCursor;
 
     public interface Callback{
+
+        void addFile(String directory);
+
         void deleteItem(String name);
     }
 
     public class TextViewHolder extends RecyclerView.ViewHolder {
         public TextView textView;
         private final View delete;
+        public final View addFile;
+
         public TextViewHolder(View itemView) {
             super(itemView);
             textView = (TextView) itemView.findViewById(R.id.text);
+            addFile =  itemView.findViewById(R.id.add_file);
             delete =  itemView.findViewById(R.id.delete);
         }
     }
@@ -50,9 +56,15 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.TextViewHolder
     @Override
     public void onBindViewHolder(final TextViewHolder holder, final int position) {
         mCursor.moveToPosition(position);
-        int directoryIdx = mCursor.getColumnIndex(ExpandableContract.DirectoryEntry.DISPLAY_NAME);
+        int directoryIdx = mCursor.getColumnIndex(ExpandableContract.FileEntry.DISPLAY_NAME);
         final String label = mCursor.getString(directoryIdx);
         holder.textView.setText(label);
+        holder.addFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mCallback.addFile(label);
+            }
+        });
         holder.delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
