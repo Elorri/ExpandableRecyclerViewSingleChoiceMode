@@ -1,90 +1,49 @@
 package com.elorri.android.expandablerecyclerview.ui;
 
 import android.content.Context;
-import android.database.Cursor;
-import android.support.v7.widget.RecyclerView;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-import android.widget.Toast;
 
+import com.bignerdranch.expandablerecyclerview.ExpandableRecyclerAdapter;
 import com.elorri.android.expandablerecyclerview.R;
-import com.elorri.android.expandablerecyclerview.data.ExpandableContract;
+import com.elorri.android.expandablerecyclerview.model.Ingredient;
+import com.elorri.android.expandablerecyclerview.model.Recipe;
 
-/**
- * Created by Elorri on 01/01/2017.
- */
-public class MainAdapter extends RecyclerView.Adapter<MainAdapter.TextViewHolder> {
+import java.util.List;
 
-    private final Callback mCallback;
-    private final Context mContext;
-    private Cursor mCursor;
+public class MainAdapter extends ExpandableRecyclerAdapter<Recipe, Ingredient, RecipeViewHolder,
+        IngredientViewHolder> {
 
-    public interface Callback{
+    private LayoutInflater mInflater;
 
-        void addFile(String directory);
-
-        void deleteItem(String name);
+    public MainAdapter(Context context, @NonNull List<Recipe> recipeList) {
+        super(recipeList);
+        mInflater = LayoutInflater.from(context);
     }
 
-    public class TextViewHolder extends RecyclerView.ViewHolder {
-        public TextView textView;
-        private final View delete;
-        public final View addFile;
-
-        public TextViewHolder(View itemView) {
-            super(itemView);
-            textView = (TextView) itemView.findViewById(R.id.text);
-            addFile =  itemView.findViewById(R.id.add_file);
-            delete =  itemView.findViewById(R.id.delete);
-        }
-    }
-
-    public MainAdapter(Context context, Cursor cursor, Callback callback) {
-        mContext=context;
-        mCursor = cursor;
-        mCallback=callback;
+    // onCreate ...
+    @Override
+    public RecipeViewHolder onCreateParentViewHolder(@NonNull ViewGroup parentViewGroup, int viewType) {
+        View recipeView = mInflater.inflate(R.layout.recipe_view, parentViewGroup, false);
+        return new RecipeViewHolder(recipeView);
     }
 
     @Override
-    public TextViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item, parent, false);
-        return new TextViewHolder(view);
+    public IngredientViewHolder onCreateChildViewHolder(@NonNull ViewGroup childViewGroup, int viewType) {
+        View ingredientView = mInflater.inflate(R.layout.ingredient_view, childViewGroup, false);
+        return new IngredientViewHolder(ingredientView);
+    }
+
+    // onBind ...
+    @Override
+    public void onBindParentViewHolder(@NonNull RecipeViewHolder recipeViewHolder, int parentPosition, @NonNull Recipe recipe) {
+        recipeViewHolder.bind(recipe);
     }
 
     @Override
-    public void onBindViewHolder(final TextViewHolder holder, final int position) {
-        mCursor.moveToPosition(position);
-        int directoryIdx = mCursor.getColumnIndex(ExpandableContract.FileEntry.DISPLAY_NAME);
-        final String label = mCursor.getString(directoryIdx);
-        holder.textView.setText(label);
-        holder.addFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mCallback.addFile(label);
-            }
-        });
-        holder.delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mCallback.deleteItem(label);
-                Toast.makeText(
-                        holder.textView.getContext(), label, Toast.LENGTH_SHORT).show();
-
-            }
-        });
+    public void onBindChildViewHolder(@NonNull IngredientViewHolder ingredientViewHolder, int parentPosition, int childPosition, @NonNull Ingredient ingredient) {
+        ingredientViewHolder.bind(ingredient);
     }
-
-    @Override
-    public int getItemCount() {
-        if (null == mCursor) return 0;
-        return mCursor.getCount();
-    }
-
-    public void swapCursor(Cursor data) {
-        mCursor = data;
-        notifyDataSetChanged();
-    }
-
 }
