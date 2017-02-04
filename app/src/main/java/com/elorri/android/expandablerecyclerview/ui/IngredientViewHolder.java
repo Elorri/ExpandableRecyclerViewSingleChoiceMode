@@ -32,6 +32,7 @@ public class IngredientViewHolder extends ChildViewHolder {
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                v.setActivated(true);
                 //ripple
             }
         });
