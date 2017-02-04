@@ -43,10 +43,10 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
 
-        Ingredient beef = new Ingredient("beef");
-        Ingredient cheese = new Ingredient("cheese");
-        Ingredient salsa = new Ingredient("salsa");
-        Ingredient tortilla = new Ingredient("tortilla");
+        Ingredient beef = new Ingredient("beef", 0);
+        Ingredient cheese = new Ingredient("cheese", 1);
+        Ingredient salsa = new Ingredient("salsa",3);
+        Ingredient tortilla = new Ingredient("tortilla", 4);
 
         Recipe taco = new Recipe("taco", Arrays.asList(beef, cheese, salsa, tortilla));
         Recipe quesadilla = new Recipe("quesadilla",Arrays.asList(cheese, tortilla));

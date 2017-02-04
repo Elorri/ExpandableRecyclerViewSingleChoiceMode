@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/material_green700</item>
+        <item name="colorPrimaryDark">@color/material_green900</item>
+        <item name="colorAccent">@color/material_greenA400</item>
+        <item name="android:colorControlHighlight">?attr/colorPrimary</item>
+        <item name="selectableItemBackgroundActivated">@drawable/selectable_item_background_activated</item>
+    </style>
+
+    <style name="Bleu">
+        <item name="colorPrimary">@color/material_blue700</item>
+        <item name="colorPrimaryDark">@color/material_blue900</item>
+        <item name="colorAccent">@color/material_blueA400</item>
+    </style>
+
+
+    <style name="Pink" >
+        <item name="colorPrimary">@color/material_pink700</item>
+        <item name="colorPrimaryDark">@color/material_pink900</item>
+        <item name="colorAccent">@color/material_pinkA400</item>
+    </style>
+
+
+    <style name="Orange">
+        <item name="colorPrimary">@color/material_orange700</item>
+        <item name="colorPrimaryDark">@color/material_orange900</item>
+        <item name="colorAccent">@color/material_orangeA400</item>
+    </style>
+
+</resources>
