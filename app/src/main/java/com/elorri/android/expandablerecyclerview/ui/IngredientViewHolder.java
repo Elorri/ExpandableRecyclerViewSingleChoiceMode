@@ -2,6 +2,7 @@ package com.elorri.android.expandablerecyclerview.ui;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -22,10 +23,12 @@ public class IngredientViewHolder extends ChildViewHolder {
 
     public void bind(Ingredient ingredient) {
         Resources.Theme currentTheme = mContext.getTheme();
-        currentTheme.applyStyle(getResTheme(ingredient.getColorIdx()), true);
-        itemView.setBackground(mContext.getResources().getDrawable(
-                ThemeUtils.getResDrawable(mContext, R.attr.selectableItemBackground),
-                currentTheme));
+        int themeRes=getResTheme(ingredient.getColorIdx());
+        Log.e("App", Thread.currentThread().getStackTrace()[2]+"themeRes "+themeRes);
+        currentTheme.applyStyle(themeRes, true);
+//        itemView.setBackground(mContext.getResources().getDrawable(
+//                ThemeUtils.getResDrawable(mContext, R.attr.selectableItemBackground), currentTheme));
+        itemView.setBackground(mContext.getResources().getDrawable(R.drawable.corner, currentTheme));
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
