@@ -24,7 +24,8 @@ public class IngredientViewHolder extends ChildViewHolder {
         Resources.Theme currentTheme = mContext.getTheme();
         currentTheme.applyStyle(getResTheme(ingredient.getColorIdx()), true);
         itemView.setBackground(mContext.getResources().getDrawable(
-                ThemeUtils.getResDrawable(mContext, R.attr.selectableItemBackground), currentTheme));
+                ThemeUtils.getResDrawable(mContext, R.attr.selectableItemBackground),
+                currentTheme));
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
