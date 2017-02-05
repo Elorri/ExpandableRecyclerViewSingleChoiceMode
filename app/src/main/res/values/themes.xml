@@ -8,7 +8,6 @@
         <item name="colorPrimaryDark">@color/material_green900</item>
         <item name="colorAccent">@color/material_greenA400</item>
         <item name="colorControlHighlight">?attr/colorPrimary</item>
-        <item name="selectableItemBackgroundActivated">@drawable/toto</item>
     </style>
 
     <style name="Bleu">
