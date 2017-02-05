@@ -12,13 +12,15 @@ import com.elorri.android.expandablerecyclerview.model.Ingredient;
 
 public class IngredientViewHolder extends ChildViewHolder {
 
+    private final ItemSingleChoiceManager mItemChoiceManager;
     private Context mContext;
     private TextView mIngredientTextView;
 
-    public IngredientViewHolder(View itemView) {
+    public IngredientViewHolder(View itemView, ItemSingleChoiceManager itemChoiceManager) {
         super(itemView);
         mContext = itemView.getContext();
         mIngredientTextView = (TextView) itemView.findViewById(R.id.ingredient_textview);
+        mItemChoiceManager=itemChoiceManager;
     }
 
     public void bind(Ingredient ingredient) {
@@ -32,12 +34,12 @@ public class IngredientViewHolder extends ChildViewHolder {
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                v.setActivated(true);
+                mItemChoiceManager.onClick(IngredientViewHolder.this);
                 //ripple
             }
         });
-
         mIngredientTextView.setText(ingredient.getName());
+        mItemChoiceManager.bind(this);
     }
 
     private int getResTheme(int colorIdx) {

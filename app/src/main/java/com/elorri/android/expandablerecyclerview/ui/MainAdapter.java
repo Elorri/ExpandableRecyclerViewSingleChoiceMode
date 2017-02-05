@@ -1,7 +1,9 @@
 package com.elorri.android.expandablerecyclerview.ui;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +19,7 @@ public class MainAdapter extends ExpandableRecyclerAdapter<Recipe, Ingredient, R
         IngredientViewHolder> {
 
     private LayoutInflater mInflater;
+    private ItemSingleChoiceManager mItemChoiceManager=new ItemSingleChoiceManager();
 
     public MainAdapter(Context context, @NonNull List<Recipe> recipeList) {
         super(recipeList);
@@ -33,7 +36,7 @@ public class MainAdapter extends ExpandableRecyclerAdapter<Recipe, Ingredient, R
     @Override
     public IngredientViewHolder onCreateChildViewHolder(@NonNull ViewGroup childViewGroup, int viewType) {
         View ingredientView = mInflater.inflate(R.layout.ingredient_view, childViewGroup, false);
-        return new IngredientViewHolder(ingredientView);
+        return new IngredientViewHolder(ingredientView, mItemChoiceManager);
     }
 
     // onBind ...
@@ -45,5 +48,18 @@ public class MainAdapter extends ExpandableRecyclerAdapter<Recipe, Ingredient, R
     @Override
     public void onBindChildViewHolder(@NonNull IngredientViewHolder ingredientViewHolder, int parentPosition, int childPosition, @NonNull Ingredient ingredient) {
         ingredientViewHolder.bind(ingredient);
+    }
+
+    @Override
+    public void onRestoreInstanceState(@Nullable Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState); //This will restore expand/collapsed
+        // exactly like before rotation.
+        mItemChoiceManager.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        mItemChoiceManager.onSaveInstanceState(savedInstanceState);
     }
 }
